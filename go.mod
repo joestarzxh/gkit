@@ -8,6 +8,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emicklei/proto v1.9.0
 	github.com/go-ole/go-ole v1.2.4 // indirect
+	github.com/go-playground/form/v4 v4.2.0 // indirect
 	github.com/golang/protobuf v1.5.2
 	github.com/juju/ratelimit v1.0.1
 	github.com/pkg/errors v0.9.1

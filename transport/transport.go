@@ -21,28 +21,60 @@ type (
 		Shutdown(ctx context.Context) error
 	}
 
-	// Endpoint 注册点
-	Endpoint interface {
+	// EndPointer 注册点
+	EndPointer interface {
 		Endpoint() (*url.URL, error)
 	}
 
+	// Header 抽象获取协议头部的动作行为
+	Header interface {
+		Get(key string) string
+		Set(key string) string
+		Keys() []string
+	}
+
 	// Transport 链路追踪的上下文
-	Transport struct {
-		Kind     Kind
-		Endpoint string
+	Transport interface {
+		// Kind 返回 KindGRPC or KindHTTP 用于区分协议调用
+		Kind() Kind
+
+		// Endpoint
+		// Server Transport: grpc://127.0.0.1:9000
+		// Client Transport: discovery://provider-demo
+		Endpoint() string
+
+		// RequestHeader 返回请求头
+		RequestHeader() Header
+
+		// ResponseHeader 返回响应头
+		ResponseHeader() Header
 	}
 )
 
-// transportKey 保证context.WithValue唯一性
-type transportKey struct{}
+func (k Kind) String() string { return string(k) }
 
-// NewTransportContext 新建链路上下文
-func NewTransportContext(ctx context.Context, tp Transport) context.Context {
-	return context.WithValue(ctx, transportKey{}, tp)
+// transportKey 保证context.WithValue唯一性
+type serverTransportKey struct{}
+type clientTransportKey struct{}
+
+// NewServerTransportContext 新建服务端链路上下文
+func NewServerTransportContext(ctx context.Context, tp Transport) context.Context {
+	return context.WithValue(ctx, serverTransportKey{}, tp)
 }
 
-// FromTransportContext 通过context获取链路信息
-func FromTransportContext(ctx context.Context) (Transport, bool) {
-	v, ok := ctx.Value(transportKey{}).(Transport)
+// FromServerTransportContext 通过服务端context获取链路信息
+func FromServerTransportContext(ctx context.Context) (Transport, bool) {
+	v, ok := ctx.Value(serverTransportKey{}).(Transport)
+	return v, ok
+}
+
+// NewClientTransportContext 新建客户端链路上下文
+func NewClientTransportContext(ctx context.Context, tp Transport) context.Context {
+	return context.WithValue(ctx, clientTransportKey{}, tp)
+}
+
+// FromClientTransportContext 通过客户端context获取链路信息
+func FromClientTransportContext(ctx context.Context) (Transport, bool) {
+	v, ok := ctx.Value(clientTransportKey{}).(Transport)
 	return v, ok
 }
